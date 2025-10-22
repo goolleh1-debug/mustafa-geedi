@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geeddi – AI Learning Academy</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4285F4">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* New Color Palette (Adjusted for contrast) */
+      --primary-color: #544ACD; /* Darker vibrant purple-blue for better contrast */
+      --primary-hover-color: #443BAC; /* Darker hover state */
+      --background-color: #f0f2f5; /* Light, clean grey */
+      --card-background: #ffffff;
+      --text-color: #333333; /* Improved contrast */
+      --heading-color: #2c3e50; /* Dark, professional blue-grey */
+      --border-color: #e0e0e0;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Softer, more modern shadow */
+      --correct-color: #1a7a30; /* Darker green for correct feedback */
+      --correct-background: #e9f7eb;
+      --incorrect-color: #a0000a; /* Darker red for incorrect feedback */
+      --incorrect-background: #fdf3f4;
+      --f8f9fa: #f8f9fa; /* Consistent light background for sections */
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background-color);
+      /* Subtle background gradient for depth */
+      background-image: linear-gradient(135deg, var(--background-color) 0%, #e8eaf1 100%);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh; /* Ensure full viewport height */
+    }
+    #root {
+      width: 100%;
+      max-width: 900px;
+      padding: 2rem;
+      box-sizing: border-box;
+      flex-grow: 1; /* Allow content to grow and push download bar down */
+      display: flex;
+      flex-direction: column;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      flex-grow: 1;
+    }
+    header {
+      text-align: center;
+      position: relative;
+      padding-bottom: 1rem;
+    }
+    header h1 {
+      color: var(--heading-color);
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+    header p {
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+      font-weight: 500;
+      color: #555;
+    }
+    .language-selector {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        background-color: var(--card-background);
+        cursor: pointer;
+        appearance: none; /* Remove default arrow */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23544ACD' viewBox='0 0 24 24'%3E%3cpath d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z'/%3E%3c/svg%3E"); /* Updated arrow color for contrast */
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 0.65em auto;
+        padding-right: 2.25rem; /* Make space for the arrow */
+    }
+    .input-section {
+      background-color: var(--card-background);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .curriculum-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .level-button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 1.5rem 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      text-align: center;
+      line-height: 1.4;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .level-button:hover:not(:disabled) {
+      background-color: var(--primary-hover-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(var(--primary-color) 0.3); /* Adjusted shadow color */
+    }
+    .level-button:disabled {
+      background-color: #7B70E0; /* Darker disabled color for contrast */
+      color: white; /* Ensure text remains white for contrast */
+      cursor: not-allowed;
+      opacity: 0.9; /* Slightly less opaque for better disabled indication */
+      box-shadow: none;
+      transform: none;
+    }
+    .loader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border-left-color: var(--primary-color);
+      animation: spin 1s ease infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      background-color: var(--incorrect-background);
+      color: var(--incorrect-color);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-weight: 500;
+      border: 1px solid var(--incorrect-color);
+    }
+    .course-display {
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+      flex-grow: 1; /* Allow content to grow */
+    }
+    .course-header {
+      padding: 1.5rem 2rem;
+      background-color: #f5f6fa; /* Lighter background for header */
+      border-bottom: 1px solid var(--border-color);
+    }
+    .course-header h2 {
+      margin: 0;
+      color: var(--heading-color);
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+    .course-content {
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .course-section {
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+    .course-section h3 {
+      margin: 0;
+      padding: 1rem 1.5rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--heading-color);
+    }
+    .course-section-content {
+      padding: 1.5rem;
+    }
+    .course-section-content ul {
+      padding-left: 1.5rem;
+      margin: 0;
+      list-style: disc;
+    }
+    .course-section-content li {
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+    .accordion summary {
+      padding: 1rem 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid var(--border-color);
+      list-style: none;
+      color: var(--heading-color);
+      transition: background-color 0.2s ease;
+    }
+    .accordion summary:hover {
+      background-color: #eff1f4;
+    }
+    .accordion summary::-webkit-details-marker {
+        display: none;
+    }
+    .accordion[open] summary {
+        border-bottom: 1px solid var(--border-color);
+    }
+    .accordion:last-of-type summary {
+      border-bottom: none;
+    }
+    .accordion:last-of-type[open] summary {
+      border-bottom: 1px solid var(--border-color);
+    }
+    .accordion-content {
+      padding: 1.5rem;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    .lesson-summary {
+      font-style: italic;
+      color: #4a4e53; /* Darkened for better contrast */
+      margin-top: 0;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .quiz-question {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .quiz-question:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .quiz-question p {
+      font-weight: 600;
+      margin-top: 0;
+      line-height: 1.5;
+    }
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .quiz-options button {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      text-align: left;
+      border: 1px solid var(--border-color);
+      background-color: var(--card-background);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .quiz-options button:hover:not(:disabled) {
+      background-color: #f6f8fa;
+      border-color: var(--primary-color);
+      box-shadow: 0 2px 6px rgba(var(--primary-color) 0.1);
+    }
+    .quiz-options button:disabled {
+      cursor: not-allowed;
+      opacity: 0.9;
+      box-shadow: none;
+    }
+
+    .true-false-options {
+      flex-direction: row;
+      gap: 1rem;
+    }
+    .true-false-options button {
+      width: auto;
+      min-width: 120px;
+      text-align: center;
+      flex-grow: 1;
+    }
+
+    .correct-feedback {
+      background-color: var(--correct-background);
+      border-color: var(--correct-color);
+      color: var(--correct-color);
+      font-weight: 600;
+    }
+    .incorrect-feedback {
+      background-color: var(--incorrect-background);
+      border-color: var(--incorrect-color);
+      color: var(--incorrect-color);
+      font-weight: 600;
+    }
+    .correct-answer-reveal {
+      background-color: var(--correct-background);
+      border: 2px solid var(--correct-color);
+    }
+    
+    .feedback-message {
+        margin-top: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    .correct-message {
+        color: var(--correct-color);
+    }
+    .incorrect-message {
+        color: var(--incorrect-color);
+    }
+
+    /* Styles for explanation */
+    .explanation-container {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #fcfdff; /* Lighter background for explanation */
+        border: 1px solid #dcdcdc; /* Slightly darker border for contrast */
+        border-radius: var(--border-radius);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .explanation-label {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--heading-color);
+    }
+    .explanation-text {
+        margin-top: 0;
+        color: var(--text-color);
+        line-height: 1.5;
+    }
+    .explanation-loading {
+        display: flex;
+        align-items: center;
+        margin-top: 1rem;
+        color: #5f6368;
+        font-style: italic;
+    }
+    .small-spinner {
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border-left-color: var(--primary-color);
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+    }
+    
+    /* Styles for section-level loading */
+    .section-loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      color: #5f6368;
+      font-style: italic;
+      min-height: 80px;
+    }
+    .section-loader .small-spinner {
+      margin-right: 0.75rem;
+    }
+
+    /* New Download Bar Styles */
+    .download-bar {
+      position: sticky; /* Use sticky for better flow, or fixed for always visible */
+      bottom: 0;
+      width: 100%;
+      background-color: var(--heading-color); /* Darker background */
+      color: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: flex; /* Use flexbox for layout */
+      justify-content: center;
+      align-items: center;
+      gap: 1rem; /* Space between buttons */
+      box-sizing: border-box; /* Include padding in width calculation */
+      margin-top: 2rem; /* Give some space from the course content */
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+
+    .download-bar button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.9rem 1.2rem; /* Adjusted padding for more buttons */
+      font-size: 1rem; /* Adjusted font size for more buttons */
+      font-weight: 600;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+      flex-shrink: 0; /* Prevent button from shrinking */
+    }
+
+    .download-bar button:hover {
+      background-color: var(--primary-hover-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(108, 99, 255, 0.4);
+    }
+    .download-bar .reload-button {
+      background-color: #D45A25; /* Darkened for contrast */
+    }
+    .download-bar .reload-button:hover {
+      background-color: #E65100;
+    }
+    .download-bar .get-app-button {
+      background-color: #388E3C; /* Darkened for contrast */
+    }
+    .download-bar .get-app-button:hover {
+      background-color: #43A047;
+    }
+
+    /* Download Confirmation Dialog Styles */
+    .download-dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1001; /* Above download bar */
+    }
+
+    .download-dialog {
+      background-color: var(--card-background);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      width: 90%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .download-dialog h4 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      color: var(--heading-color);
+      font-size: 1.2rem;
+      text-align: center;
+    }
+
+    .download-format-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .download-format-option label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1rem;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    .download-format-option input[type="radio"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      width: 1.25rem;
+      height: 1.25rem;
+      border: 2px solid var(--primary-color);
+      border-radius: 50%;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .download-format-option input[type="radio"]:checked {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .download-format-option input[type="radio"]:checked::before {
+      content: '';
+      display: block;
+      width: 0.5rem;
+      height: 0.5rem;
+      background-color: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .download-dialog-actions {
+      display: flex;
+      justify-content: space-around;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .download-dialog-actions button {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .download-dialog-actions .confirm-button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .download-dialog-actions .confirm-button:hover {
+      background-color: var(--primary-hover-color);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(var(--primary-color) 0.3);
+    }
+
+    .download-dialog-actions .cancel-button {
+      background-color: #e0e0e0;
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .download-dialog-actions .cancel-button:hover {
+      background-color: #d0d0d0;
+      transform: translateY(-1px);
+    }
+
+    /* App Download QR Dialog Styles */
+    .app-qr-dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1002; /* Above other dialogs */
+    }
+
+    .app-qr-dialog {
+      background-color: var(--card-background);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      width: 90%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      animation: fadeIn 0.3s ease-out;
+      text-align: center;
+    }
+
+    .app-qr-dialog h4 {
+      margin-top: 0;
+      color: var(--heading-color);
+      font-size: 1.3rem;
+    }
+
+    .app-qr-dialog .qr-code-img {
+      width: 200px; /* Larger QR code in dialog */
+      height: 200px;
+      margin: 0 auto 1rem auto; /* Center and add margin below */
+      background-color: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .app-qr-dialog p {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    .app-qr-dialog .close-button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .app-qr-dialog .close-button:hover {
+      background-color: var(--primary-hover-color);
+      transform: translateY(-1px);
+    }
+
+    /* Feedback Section Styles */
+    .feedback-section {
+      background-color: var(--f8f9fa); /* Use a light background for feedback sections */
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .feedback-section h4 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--heading-color);
+    }
+
+    .star-rating {
+      display: flex;
+      gap: 0.25rem;
+      font-size: 1.8rem; /* Make stars larger */
+    }
+
+    .star-rating .star {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      color: #ccc; /* Default grey star */
+      transition: color 0.2s ease, transform 0.1s ease;
+      font-size: 1.8rem; /* Ensure emoji size is consistent */
+      line-height: 1; /* Adjust line height to prevent extra space */
+    }
+
+    .star-rating .star:hover {
+      transform: scale(1.1);
+    }
+
+    .star-rating .star.selected,
+    .star-rating .star:focus { /* Add focus state for accessibility */
+      color: #FFD700; /* Gold color for selected/focused star */
+      outline: none; /* Remove default focus outline */
+      box-shadow: 0 0 0 2px rgba(var(--primary-color) 0.5); /* Custom focus indicator */
+      border-radius: 4px; /* Apply to the button area */
+    }
+
+    .feedback-section textarea {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 80px;
+      box-sizing: border-box; /* Include padding in width */
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .feedback-section textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(var(--primary-color) 0.2);
+    }
+
+    .submit-feedback-button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      align-self: flex-start; /* Align button to the start */
+    }
+
+    .submit-feedback-button:hover:not(:disabled) {
+      background-color: var(--primary-hover-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(var(--primary-color) 0.3);
+    }
+
+    .submit-feedback-button:disabled {
+      background-color: #7B70E0; /* Lighter primary for disabled, adjusted for contrast */
+      color: white; /* Ensure text remains white */
+      cursor: not-allowed;
+      opacity: 0.9;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .submitted-feedback p {
+      margin: 0.5rem 0;
+      line-height: 1.5;
+      color: #5f6368;
+    }
+
+    .thank-you-message {
+      font-weight: 600;
+      color: var(--correct-color); /* Use correct-color for positive message */
+      margin-top: 0.5rem;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    @media (max-width: 768px) {
+      .language-selector {
+        position: static;
+        margin-top: 1rem;
+        width: 100%;
+        text-align: center;
+      }
+      .curriculum-grid {
+        grid-template-columns: 1fr;
+      }
+      .download-bar {
+        flex-direction: column; /* Stack buttons vertically */
+        padding: 1rem;
+        gap: 0.75rem; /* Reduced gap for stacked buttons */
+      }
+      .download-bar button {
+        width: 100%;
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      #root {
+        padding: 1rem;
+      }
+      header h1 {
+        font-size: 2rem;
+      }
+      .true-false-options {
+        flex-direction: column;
+      }
+      .true-false-options button {
+        min-width: unset;
+      }
+      .download-bar {
+        border-radius: 0; /* No border-radius on small screens for full width sticky */
+      }
+      .download-dialog-actions {
+        flex-direction: column;
+      }
+      .app-qr-dialog .qr-code-img {
+        width: 150px; /* Slightly smaller QR for very small screens */
+        height: 150px;
+        padding: 8px;
+      }
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.25.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          })
+          .catch(error => {
+            console.log('ServiceWorker registration failed: ', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
